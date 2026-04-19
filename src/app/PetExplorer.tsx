@@ -152,7 +152,19 @@ const calculatePops = (initStats?: {
 
 export default function PetExplorer() {
   const [pets, setPets] = useState<Pet[]>([]);
+  const [userStats, setUserStats] = useState<
+    Record<string, NonNullable<Pet["init_stats_decimal"]>>
+  >({});
   const [loading, setLoading] = useState(true);
+
+  // Edit Modal State
+  const [editingPet, setEditingPet] = useState<Pet | null>(null);
+  const [editValues, setEditValues] = useState({
+    hp: "",
+    atk: "",
+    def: "",
+    agi: "",
+  });
 
   // Filters
   const [search, setSearch] = useState("");
@@ -180,6 +192,7 @@ export default function PetExplorer() {
   const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // 1. Load basic pets
     fetch("/pets.json")
       .then((res) => res.json())
       .then((data) => {
@@ -190,7 +203,24 @@ export default function PetExplorer() {
         console.error("Failed to load pets", err);
         setLoading(false);
       });
+
+    // 2. Load user stats from localStorage
+    const saved = localStorage.getItem("pet_user_stats");
+    if (saved) {
+      try {
+        setUserStats(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse user stats", e);
+      }
+    }
   }, []);
+
+  // Save user stats to localStorage whenever they change
+  useEffect(() => {
+    if (Object.keys(userStats).length > 0) {
+      localStorage.setItem("pet_user_stats", JSON.stringify(userStats));
+    }
+  }, [userStats]);
 
   // Filter change resets visible count
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional reset on filter change
@@ -633,75 +663,84 @@ export default function PetExplorer() {
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
-              {displayedPets.map((pet, index) => {
-                const popData = calculatePops(pet.init_stats_decimal);
-                return (
-                  <div
-                    key={`${pet.id}-${index}`}
-                    className="group relative rounded-[1rem] z-10 hover:z-50 block h-full flex-col flex cursor-pointer"
-                  >
-                    {/* ===== Popover Tooltip (아래로 매달림) ===== */}
-                    {popData && (
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 pt-3 w-80 bg-transparent opacity-0 group-hover:opacity-100 transition-all duration-0 group-hover:duration-150 z-50 pointer-events-none group-hover:pointer-events-auto transform translate-y-2 group-hover:translate-y-0">
-                        <div className="bg-[#12142d]/98 backdrop-blur-2xl p-5 flex flex-col items-stretch text-left space-y-3 rounded-2xl border border-indigo-500/40 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] relative">
-                          {/* Arrow */}
-                          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#12142d] border-t border-l border-indigo-500/40 transform rotate-45 z-0" />
+                {displayedPets.map((pet, index) => {
+                  const effectiveStats =
+                    pet.init_stats_decimal || userStats[pet.id];
+                  const popData = calculatePops(effectiveStats);
+                  return (
+                    <div
+                      key={`${pet.id}-${index}`}
+                      className="group relative rounded-[1rem] z-10 hover:z-50 block h-full flex-col flex cursor-pointer"
+                    >
+                      {/* ===== Popover Tooltip (아래로 매달림) ===== */}
+                      {popData && (
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 pt-3 w-80 bg-transparent opacity-0 group-hover:opacity-100 transition-all duration-0 group-hover:duration-150 z-50 pointer-events-none group-hover:pointer-events-auto transform translate-y-2 group-hover:translate-y-0">
+                          <div className="bg-[#12142d]/98 backdrop-blur-2xl p-5 flex flex-col items-stretch text-left space-y-3 rounded-2xl border border-indigo-500/40 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] relative">
+                            {/* Arrow */}
+                            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#12142d] border-t border-l border-indigo-500/40 transform rotate-45 z-0" />
 
-                          {/* 안전도 판별 */}
-                          <div className="text-base font-bold leading-relaxed space-y-2 relative z-10">
-                            {popData.allSafe ? (
-                              <p className="text-emerald-400 text-center bg-emerald-900/20 py-2 rounded border border-emerald-500/10">
-                                ✅ 모든 초기능력치가 안정적입니다
-                              </p>
-                            ) : (
-                              popData.dangerStats.map((s) => (
-                                <p
-                                  key={s.name}
-                                  className="text-amber-400 text-center bg-amber-900/20 py-2 rounded border border-amber-500/10"
-                                >
-                                  🎲 [{s.name}] 소수점 .
-                                  {(s.decimal * 100).toFixed(0)} → 통수 주의
-                                  (정석이라도 실제 약할 수 있음)
+                            {/* Source Indicator */}
+                            {!pet.init_stats_decimal && userStats[pet.id] && (
+                              <div className="text-[10px] font-black text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full self-center border border-amber-500/20">
+                                사용자 입력 데이터
+                              </div>
+                            )}
+
+                            {/* 안전도 판별 */}
+                            <div className="text-base font-bold leading-relaxed space-y-2 relative z-10">
+                              {popData.allSafe ? (
+                                <p className="text-emerald-400 text-center bg-emerald-900/20 py-2 rounded border border-emerald-500/10">
+                                  ✅ 모든 초기능력치가 안정적입니다
                                 </p>
-                              ))
-                            )}
-                            {popData.safeStats.length > 0 && (
-                              <p className="text-emerald-400/70 text-center text-sm py-1">
-                                🛡️{" "}
-                                {popData.safeStats
-                                  .map((s) => s.name)
-                                  .join(", ")}{" "}
-                                → 정석이면 S급 확정, -1이어도 손실 적음
-                              </p>
-                            )}
-                          </div>
+                              ) : (
+                                popData.dangerStats.map((s) => (
+                                  <p
+                                    key={s.name}
+                                    className="text-amber-400 text-center bg-amber-900/20 py-2 rounded border border-amber-500/10"
+                                  >
+                                    🎲 [{s.name}] 소수점 .
+                                    {(s.decimal * 100).toFixed(0)} → 통수 주의
+                                    (정석이라도 실제 약할 수 있음)
+                                  </p>
+                                ))
+                              )}
+                              {popData.safeStats.length > 0 && (
+                                <p className="text-emerald-400/70 text-center text-sm py-1">
+                                  🛡️{" "}
+                                  {popData.safeStats
+                                    .map((s) => s.name)
+                                    .join(", ")}{" "}
+                                  → 정석이면 S급 확정, -1이어도 손실 적음
+                                </p>
+                              )}
+                            </div>
 
-                          {/* S급 초기능력치 가능한 모든 리스트 */}
-                          <div className="bg-black/60 border border-white/5 rounded-xl p-4 text-base font-mono shadow-inner w-full relative z-10 flex flex-col h-72">
-                            <p className="text-white/40 text-[13px] mb-2.5 font-bold shrink-0">
-                              S/S 가능 초기능력치 리스트 (체/공/방/순)
-                            </p>
-                            <div className="overflow-y-auto space-y-1 custom-scrollbar pr-1">
-                              {popData.allCombos.map((combo, i) => (
-                                <div
-                                  key={combo}
-                                  className="flex items-center gap-2 py-0.5 border-b border-white/5 last:border-0"
-                                >
-                                  <span className="text-indigo-400 font-black w-3 text-center shrink-0 opacity-50">
-                                    {i + 1}
-                                  </span>
-                                  <span className="text-white tracking-wider flex-1">
-                                    {combo}
-                                  </span>
-                                </div>
-                              ))}
+                            {/* S급 초기능력치 가능한 모든 리스트 */}
+                            <div className="bg-black/60 border border-white/5 rounded-xl p-4 text-base font-mono shadow-inner w-full relative z-10 flex flex-col h-72">
+                              <p className="text-white/40 text-[13px] mb-2.5 font-bold shrink-0">
+                                S/S 가능 초기능력치 리스트 (체/공/방/순)
+                              </p>
+                              <div className="overflow-y-auto space-y-1 custom-scrollbar pr-1">
+                                {popData.allCombos.map((combo, i) => (
+                                  <div
+                                    key={combo}
+                                    className="flex items-center gap-2 py-0.5 border-b border-white/5 last:border-0"
+                                  >
+                                    <span className="text-indigo-400 font-black w-3 text-center shrink-0 opacity-50">
+                                      {i + 1}
+                                    </span>
+                                    <span className="text-white tracking-wider flex-1">
+                                      {combo}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    <style jsx global>{`
+                      <style jsx global>{`
                       .custom-scrollbar::-webkit-scrollbar {
                         width: 4px;
                       }
@@ -718,144 +757,293 @@ export default function PetExplorer() {
                       }
                     `}</style>
 
-                    {/* ===== Pet Card Inner ===== */}
-                    <a
-                      href={pet.detail_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex flex-col h-full flex-1 overflow-hidden rounded-[1rem] bg-[#161827] border border-white/10 group-hover:border-indigo-500/30 transition-[transform,box-shadow,border-color] duration-150 group-hover:shadow-[0_4px_15px_-5px_rgba(99,102,241,0.2)] group-hover:-translate-y-1 transform-gpu"
-                    >
-                      {/* Mountable Icon */}
-                      {pet.stats.탑승여부 === "가능" && (
-                        <div className="absolute top-2.5 right-2.5 z-20 flex items-center justify-center bg-black/40 backdrop-blur-md p-1.5 rounded-lg border border-amber-500/30 transition-colors shadow-sm transform-gpu">
-                          <svg
-                            className="w-3.5 h-3.5 text-amber-400"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                          >
-                            <title>탑승 가능</title>
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M4 11s0-4 8-4 8 4 8 4l-1 5s-1 3-7 3-7-3-7-3l-1-5z"
-                            />
-                            <path d="M9 15v3M15 15v3" strokeLinecap="round" />
-                          </svg>
-                        </div>
-                      )}
-                      {/* Element Badge */}
-                      <div className="absolute top-2.5 left-2.5 z-20 flex items-center bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded border border-white/5 transform-gpu">
-                        <span className="text-gray-200 font-bold text-base tracking-wide">
-                          {pet.stats.속성}
-                        </span>
-                      </div>
-                      {/* Has analysis badge */}
-                      {pet.init_stats_decimal && (
-                        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 z-20 flex items-center bg-indigo-500/20 backdrop-blur-md px-1.5 py-0.5 rounded border border-indigo-500/20 transform-gpu">
-                          <span className="text-indigo-300 font-bold text-base tracking-wide">
-                            분석
+                      {/* ===== Pet Card Inner ===== */}
+                      <a
+                        href={pet.detail_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex flex-col h-full flex-1 overflow-hidden rounded-[1rem] bg-[#161827] border border-white/10 group-hover:border-indigo-500/30 transition-[transform,box-shadow,border-color] duration-150 group-hover:shadow-[0_4px_15px_-5px_rgba(99,102,241,0.2)] group-hover:-translate-y-1 transform-gpu"
+                      >
+                        {/* Mountable Icon */}
+                        {pet.stats.탑승여부 === "가능" && (
+                          <div className="absolute top-2.5 right-2.5 z-20 flex items-center justify-center bg-black/40 backdrop-blur-md p-1.5 rounded-lg border border-amber-500/30 transition-colors shadow-sm transform-gpu">
+                            <svg
+                              className="w-3.5 h-3.5 text-amber-400"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth={2}
+                            >
+                              <title>탑승 가능</title>
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M4 11s0-4 8-4 8 4 8 4l-1 5s-1 3-7 3-7-3-7-3l-1-5z"
+                              />
+                              <path d="M9 15v3M15 15v3" strokeLinecap="round" />
+                            </svg>
+                          </div>
+                        )}
+                        {/* Element Badge */}
+                        <div className="absolute top-2.5 left-2.5 z-20 flex items-center bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded border border-white/5 transform-gpu">
+                          <span className="text-gray-200 font-bold text-base tracking-wide">
+                            {pet.stats.속성}
                           </span>
                         </div>
-                      )}
+                        {/* Has analysis badge */}
+                        {(pet.init_stats_decimal || userStats[pet.id]) && (
+                          <div
+                            className={`absolute top-2.5 left-1/2 -translate-x-1/2 z-20 flex items-center backdrop-blur-md px-1.5 py-0.5 rounded border transform-gpu ${
+                              pet.init_stats_decimal
+                                ? "bg-indigo-500/20 border-indigo-500/20"
+                                : "bg-amber-500/20 border-amber-500/20"
+                            }`}
+                          >
+                            <span
+                              className={`font-bold text-base tracking-wide ${
+                                pet.init_stats_decimal
+                                  ? "text-indigo-300"
+                                  : "text-amber-300"
+                              }`}
+                            >
+                              {pet.init_stats_decimal ? "분석" : "LOCAL"}
+                            </span>
+                          </div>
+                        )}
 
-                      <div className="p-3 pt-8 pb-2.5 flex flex-col items-center flex-1 relative z-10 w-full">
-                        <div className="relative w-16 h-16 min-h-[4rem] mb-3 transition-transform duration-75 will-change-transform">
-                          <Image
-                            src={`/images/${pet.local_image}`}
-                            alt={pet.name}
-                            width={64}
-                            height={64}
-                            onError={(e) => {
-                              (e.currentTarget as HTMLImageElement).src =
-                                "/default-pet.png";
+                        {/* Edit Button (Only for pets without official data) */}
+                        {!pet.init_stats_decimal && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setEditingPet(pet);
+                              const current = userStats[pet.id] || {
+                                hp: "",
+                                atk: "",
+                                def: "",
+                                agi: "",
+                              };
+                              setEditValues({
+                                hp: current.hp.toString(),
+                                atk: current.atk.toString(),
+                                def: current.def.toString(),
+                                agi: current.agi.toString(),
+                              });
                             }}
-                            className="w-full h-full object-contain filter drop-shadow-[0_5px_8px_rgba(0,0,0,0.5)]"
-                          />
-                        </div>
-                        <h2 className="text-xl font-extrabold text-white/90 group-hover:text-white transition-colors tracking-tight mb-3 text-center">
-                          {pet.name}
-                        </h2>
-                        {/* Stats Grid */}
-                        <div className="w-full grid grid-cols-5 gap-0.5 mt-auto bg-black/40 p-2 rounded-lg border border-white/5 overflow-hidden">
-                          {[
-                            {
-                              label: "공",
-                              statStr: pet.stats.공격력,
-                              color: "text-rose-300",
-                            },
-                            {
-                              label: "방",
-                              statStr: pet.stats.방어력,
-                              color: "text-sky-300",
-                            },
-                            {
-                              label: "순",
-                              statStr: pet.stats.순발력,
-                              color: "text-emerald-300",
-                            },
-                            {
-                              label: "내",
-                              statStr: pet.stats.내구력,
-                              color: "text-orange-300",
-                            },
-                            {
-                              label: "총",
-                              statStr: `${pet.stats.성장률}(${pet.stats.성장률})`,
-                              color: "text-indigo-300",
-                            },
-                          ].map((stat) => {
-                            const isTotal = stat.label === "총";
-                            let base = "0",
-                              grw = "0.00";
-                            if (stat.statStr) {
-                              const parts = stat.statStr
-                                .replace(")", "")
-                                .split("(");
-                              base = isTotal ? "전체" : parts[0];
-                              grw = isTotal ? parts[0] : parts[1] || "0.00";
-                            }
-                            return (
-                              <div
-                                key={stat.label}
-                                className="flex flex-col items-center justify-center py-2"
-                              >
-                                <span className="text-gray-500 text-[11px] font-black mb-0.5 uppercase tracking-wider">
-                                  {stat.label}
-                                </span>
-                                <span
-                                  className={`${stat.color} font-bold text-base leading-tight`}
-                                >
-                                  {base}
-                                </span>
-                                <span className="text-white/50 font-semibold text-[11px] leading-none mt-1">
-                                  +{grw}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </a>
-                  </div>
-                );
-              })}
-            </div>
+                            className="absolute bottom-24 right-2.5 z-30 w-8 h-8 flex items-center justify-center bg-black/60 backdrop-blur-md rounded-full border border-white/10 text-white/40 hover:text-white hover:bg-indigo-500/40 hover:border-indigo-500/40 transition-all opacity-0 group-hover:opacity-100"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <title>Edit Stats</title>
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                          </button>
+                        )}
 
-            {/* Infinite Scroll Sentinel */}
-            {visibleCount < filteredPets.length && (
-              <div
-                ref={observerTarget}
-                className="w-full flex justify-center py-8"
-              >
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500/50"></div>
+                        <div className="p-3 pt-8 pb-2.5 flex flex-col items-center flex-1 relative z-10 w-full">
+                          <div className="relative w-16 h-16 min-h-[4rem] mb-3 transition-transform duration-75 will-change-transform">
+                            <Image
+                              src={`/images/${pet.local_image}`}
+                              alt={pet.name}
+                              width={64}
+                              height={64}
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).src =
+                                  "/default-pet.png";
+                              }}
+                              className="w-full h-full object-contain filter drop-shadow-[0_5px_8px_rgba(0,0,0,0.5)]"
+                            />
+                          </div>
+                          <h2 className="text-xl font-extrabold text-white/90 group-hover:text-white transition-colors tracking-tight mb-3 text-center">
+                            {pet.name}
+                          </h2>
+                          {/* Stats Grid */}
+                          <div className="w-full grid grid-cols-5 gap-0.5 mt-auto bg-black/40 p-2 rounded-lg border border-white/5 overflow-hidden">
+                            {[
+                              {
+                                label: "공",
+                                statStr: pet.stats.공격력,
+                                color: "text-rose-300",
+                              },
+                              {
+                                label: "방",
+                                statStr: pet.stats.방어력,
+                                color: "text-sky-300",
+                              },
+                              {
+                                label: "순",
+                                statStr: pet.stats.순발력,
+                                color: "text-emerald-300",
+                              },
+                              {
+                                label: "내",
+                                statStr: pet.stats.내구력,
+                                color: "text-orange-300",
+                              },
+                              {
+                                label: "총",
+                                statStr: `${pet.stats.성장률}(${pet.stats.성장률})`,
+                                color: "text-indigo-300",
+                              },
+                            ].map((stat) => {
+                              const isTotal = stat.label === "총";
+                              let base = "0",
+                                grw = "0.00";
+                              if (stat.statStr) {
+                                const parts = stat.statStr
+                                  .replace(")", "")
+                                  .split("(");
+                                base = isTotal ? "전체" : parts[0];
+                                grw = isTotal ? parts[0] : parts[1] || "0.00";
+                              }
+                              return (
+                                <div
+                                  key={stat.label}
+                                  className="flex flex-col items-center justify-center py-2"
+                                >
+                                  <span className="text-gray-500 text-[11px] font-black mb-0.5 uppercase tracking-wider">
+                                    {stat.label}
+                                  </span>
+                                  <span
+                                    className={`${stat.color} font-bold text-base leading-tight`}
+                                  >
+                                    {base}
+                                  </span>
+                                  <span className="text-white/50 font-semibold text-[11px] leading-none mt-1">
+                                    +{grw}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </a>
+                    </div>
+                  );
+                })}
               </div>
-            )}
-          </>
+
+              {/* Infinite Scroll Sentinel */}
+              {visibleCount < filteredPets.length && (
+                <div
+                  ref={observerTarget}
+                  className="w-full flex justify-center py-8"
+                >
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500/50"></div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Edit Modal */}
+        {editingPet && (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+            <button
+              type="button"
+              aria-label="Close modal"
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-default"
+              onClick={() => setEditingPet(null)}
+            />
+
+            <div className="relative w-full max-w-sm bg-[#161827] border border-white/10 rounded-2xl shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in duration-150">
+              <div className="flex items-center gap-4">
+                <div className="relative w-12 h-12 bg-black/20 rounded-xl p-1 shrink-0">
+                  <Image
+                    src={`/images/${editingPet.local_image}`}
+                    alt={editingPet.name}
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">
+                    {editingPet.name}
+                  </h3>
+                  <p className="text-indigo-400/60 text-sm font-bold">
+                    소수점 정밀 초기스탯 입력
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: "HP", key: "hp", color: "text-orange-400" },
+                  { label: "ATK", key: "atk", color: "text-rose-400" },
+                  { label: "DEF", key: "def", color: "text-sky-400" },
+                  { label: "AGI", key: "agi", color: "text-emerald-400" },
+                ].map((field) => (
+                  <div key={field.key} className="space-y-1.5">
+                    <label
+                      htmlFor={`edit-stat-${field.key}`}
+                      className={`text-[12px] font-black uppercase tracking-wider ${field.color}`}
+                    >
+                      {field.label}
+                    </label>
+                    <input
+                      id={`edit-stat-${field.key}`}
+                      type="number"
+                      step="0.01"
+                      value={editValues[field.key as keyof typeof editValues]}
+                      onChange={(e) =>
+                        setEditValues((prev) => ({
+                          ...prev,
+                          [field.key]: e.target.value,
+                        }))
+                      }
+                      className="w-full bg-black/40 border border-white/5 rounded-lg px-3 py-2 text-white font-bold text-base focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                      placeholder="0.00"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingPet(null)}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 text-white/60 font-bold hover:bg-white/10 transition-colors"
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const stats = {
+                      hp: parseFloat(editValues.hp),
+                      atk: parseFloat(editValues.atk),
+                      def: parseFloat(editValues.def),
+                      agi: parseFloat(editValues.agi),
+                    };
+                    if (!Object.values(stats).some(Number.isNaN)) {
+                      setUserStats((prev) => ({
+                        ...prev,
+                        [editingPet.id]: stats,
+                      }));
+                      setEditingPet(null);
+                    }
+                  }}
+                  className="flex-[1.5] px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold shadow-lg shadow-indigo-500/20"
+                >
+                  저장하기
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
-  </div>
-);
+  );
 }
