@@ -165,6 +165,8 @@ export default function PetExplorer() {
   });
   const [mountable, setMountable] = useState<"all" | "가능" | "불가">("all");
   const [sort, setSort] = useState<SortOption>("name");
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
 
   // Growth Filters
   const [minGrowth, setMinGrowth] = useState<string>("4.0");
@@ -206,6 +208,20 @@ export default function PetExplorer() {
     minAgiGrowth,
     minHpGrowth,
   ]);
+
+  // Close sort dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        sortDropdownRef.current &&
+        !sortDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsSortOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const filteredPets = useMemo(() => {
     return pets
@@ -379,7 +395,7 @@ export default function PetExplorer() {
         </header>
 
         {/* Filters */}
-        <div className="flex flex-col xl:flex-row gap-6 p-5 rounded-2xl bg-[#161827] border border-white/10 backdrop-blur-xl shadow-lg">
+        <div className="relative z-20 flex flex-col xl:flex-row gap-6 p-5 rounded-2xl bg-[#161827] border border-white/10 backdrop-blur-xl shadow-lg">
           {/* Element Sliders */}
           <div className="flex-[1.2] flex flex-col space-y-3 min-w-[260px]">
             <span className="text-base font-bold text-indigo-300/60 uppercase tracking-widest px-1">
@@ -395,13 +411,6 @@ export default function PetExplorer() {
                     <span
                       className={`font-bold ${el === "화" ? "text-red-400" : el === "수" ? "text-blue-400" : el === "지" ? "text-green-400" : "text-yellow-400"}`}
                     >
-                      {el === "화"
-                        ? "🔥"
-                        : el === "수"
-                          ? "💧"
-                          : el === "지"
-                            ? "🌿"
-                            : "💨"}{" "}
                       {el}
                     </span>
                     <span className="text-white/80 font-mono font-bold bg-white/5 px-2 py-0.5 rounded text-base">
@@ -516,7 +525,7 @@ export default function PetExplorer() {
           <div className="w-px bg-white/5 hidden xl:block" />
 
           {/* Mount & Sort */}
-          <div className="flex flex-col justify-center sm:flex-row gap-4 min-w-[200px]">
+          <div className="flex flex-col justify-center gap-4 min-w-[200px]">
             <div className="space-y-3 flex-1">
               <span className="text-base font-bold text-indigo-300/60 uppercase tracking-widest pl-1">
                 탑승
@@ -541,34 +550,68 @@ export default function PetExplorer() {
               >
                 정렬
               </label>
-              <div className="relative">
-                <select
-                  id="sort-select"
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value as SortOption)}
-                  className="bg-[#0d0f1a] border border-white/10 text-white text-base font-bold rounded-xl pl-3 pr-10 py-3 block w-full focus:ring-1 focus:ring-indigo-500/50 focus:outline-none appearance-none cursor-pointer shadow-inner"
+              <div className="relative" ref={sortDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsSortOpen(!isSortOpen)}
+                  className="bg-[#0d0f1a] border border-white/10 text-white text-base font-bold rounded-xl pl-3 pr-10 py-3 bg-gradient-to-b from-[#0d0f1a] to-[#0a0c14] block w-full text-left focus:ring-1 focus:ring-indigo-500/50 focus:outline-none cursor-pointer shadow-inner relative group/sort"
                 >
-                  <option value="name">이름순</option>
-                  <option value="id">번호순</option>
-                  <option value="growth">성장률순</option>
-                  <option value="attack">공격력순</option>
-                </select>
-                <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
-                  <svg
-                    className="w-3.5 h-3.5 text-indigo-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <title>Arrow Down</title>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </div>
+                  {sort === "name"
+                    ? "이름순"
+                    : sort === "id"
+                      ? "번호순"
+                      : sort === "growth"
+                        ? "성장률순"
+                        : "공격력순"}
+                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                    <svg
+                      className={`w-3.5 h-3.5 text-indigo-400 transition-transform duration-300 ${isSortOpen ? "rotate-180" : ""}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <title>Arrow Down</title>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                </button>
+
+                {isSortOpen && (
+                  <div className="absolute left-0 right-0 mt-2 z-[100] bg-[#161827]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    {(
+                      [
+                        { label: "이름순", value: "name" },
+                        { label: "번호순", value: "id" },
+                        { label: "성장률순", value: "growth" },
+                        { label: "공격력순", value: "attack" },
+                      ] as const
+                    ).map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setSort(opt.value);
+                          setIsSortOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-3 text-base font-bold transition-all duration-200 flex items-center justify-between ${
+                          sort === opt.value
+                            ? "bg-indigo-500/10 text-indigo-300"
+                            : "text-white/60 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        {opt.label}
+                        {sort === opt.value && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.6)]" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -598,8 +641,8 @@ export default function PetExplorer() {
                   >
                     {/* ===== Popover Tooltip (아래로 매달림) ===== */}
                     {popData && (
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 pt-3 w-64 bg-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 pointer-events-none group-hover:pointer-events-auto transform translate-y-2 group-hover:translate-y-0">
-                        <div className="bg-[#12142d]/98 backdrop-blur-2xl p-4 flex flex-col items-stretch text-left space-y-2.5 rounded-2xl border border-indigo-500/40 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] relative">
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 pt-3 w-80 bg-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 pointer-events-none group-hover:pointer-events-auto transform translate-y-2 group-hover:translate-y-0">
+                        <div className="bg-[#12142d]/98 backdrop-blur-2xl p-5 flex flex-col items-stretch text-left space-y-3 rounded-2xl border border-indigo-500/40 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] relative">
                           {/* Arrow */}
                           <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#12142d] border-t border-l border-indigo-500/40 transform rotate-45 z-0" />
 
@@ -633,8 +676,8 @@ export default function PetExplorer() {
                           </div>
 
                           {/* S급 초기능력치 가능한 모든 리스트 */}
-                          <div className="bg-black/60 border border-white/5 rounded-xl p-3 text-base font-mono shadow-inner w-full relative z-10 flex flex-col h-56">
-                            <p className="text-white/40 text-base mb-2 font-bold shrink-0">
+                          <div className="bg-black/60 border border-white/5 rounded-xl p-4 text-base font-mono shadow-inner w-full relative z-10 flex flex-col h-72">
+                            <p className="text-white/40 text-[13px] mb-2.5 font-bold shrink-0">
                               S/S 가능 초기능력치 리스트 (체/공/방/순)
                             </p>
                             <div className="overflow-y-auto space-y-1 custom-scrollbar pr-1">
