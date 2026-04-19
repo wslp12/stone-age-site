@@ -334,7 +334,7 @@ export default function PetExplorer() {
 
   return (
     <div className="min-h-screen bg-[#0f111a] text-white p-3 md:p-6 font-sans selection:bg-indigo-500/30">
-      <div className="max-w-[100rem] mx-auto space-y-5">
+      <div className="max-w-[100rem] mx-auto space-y-5 flex flex-col min-h-[calc(100vh-3rem)]">
         {/* Header */}
         <header className="flex flex-col lg:flex-row items-center justify-between gap-4 pb-4 border-b border-indigo-500/10">
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400 text-transparent bg-clip-text drop-shadow-sm">
@@ -382,11 +382,11 @@ export default function PetExplorer() {
                   onChange={(e) => setIncludeCategory(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-8 h-4.5 bg-[#121426] border border-white/10 rounded-full peer-checked:bg-indigo-500/30 peer-checked:border-indigo-500/40 transition-all duration-300 shadow-inner" />
-                <div className="absolute top-0.5 left-0.5 w-3.5 h-3.5 bg-white/30 rounded-full peer-checked:translate-x-3.5 peer-checked:bg-indigo-400 transition-all duration-300 shadow-sm" />
+                <div className="w-8 h-4.5 bg-[#121426] border border-white/10 rounded-full peer-checked:bg-indigo-500/30 peer-checked:border-indigo-500/40 transition-all duration-150 shadow-inner" />
+                <div className="absolute top-0.5 left-0.5 w-3.5 h-3.5 bg-white/30 rounded-full peer-checked:translate-x-3.5 peer-checked:bg-indigo-400 transition-all duration-150 shadow-sm" />
               </div>
               <span
-                className={`text-base font-bold transition-colors duration-200 ${includeCategory ? "text-indigo-300" : "text-white/25"}`}
+                className={`text-base font-bold transition-colors duration-100 ${includeCategory ? "text-indigo-300" : "text-white/25"}`}
               >
                 카테고리
               </span>
@@ -536,7 +536,7 @@ export default function PetExplorer() {
                     key={m}
                     type="button"
                     onClick={() => setMountable(m)}
-                    className={`flex-1 px-4 py-2.5 rounded-lg text-base font-bold transition-all duration-300 ${mountable === m ? "bg-zinc-800 text-white shadow-md" : "text-indigo-200/40 hover:text-indigo-200"}`}
+                    className={`flex-1 px-4 py-2.5 rounded-lg text-base font-bold transition-all duration-150 ${mountable === m ? "bg-zinc-800 text-white shadow-md" : "text-indigo-200/40 hover:text-indigo-200"}`}
                   >
                     {m === "all" ? "전체" : m}
                   </button>
@@ -565,7 +565,7 @@ export default function PetExplorer() {
                         : "공격력순"}
                   <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
                     <svg
-                      className={`w-3.5 h-3.5 text-indigo-400 transition-transform duration-300 ${isSortOpen ? "rotate-180" : ""}`}
+                      className={`w-3.5 h-3.5 text-indigo-400 transition-transform duration-150 ${isSortOpen ? "rotate-180" : ""}`}
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -582,7 +582,7 @@ export default function PetExplorer() {
                 </button>
 
                 {isSortOpen && (
-                  <div className="absolute left-0 right-0 mt-2 z-[100] bg-[#161827]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute left-0 right-0 mt-2 z-[100] bg-[#161827]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-100">
                     {(
                       [
                         { label: "이름순", value: "name" },
@@ -598,7 +598,7 @@ export default function PetExplorer() {
                           setSort(opt.value);
                           setIsSortOpen(false);
                         }}
-                        className={`w-full text-left px-4 py-3 text-base font-bold transition-all duration-200 flex items-center justify-between ${
+                        className={`w-full text-left px-4 py-3 text-base font-bold transition-all duration-100 flex items-center justify-between ${
                           sort === opt.value
                             ? "bg-indigo-500/10 text-indigo-300"
                             : "text-white/60 hover:bg-white/5 hover:text-white"
@@ -625,13 +625,14 @@ export default function PetExplorer() {
         </p>
 
         {/* Pet Grid */}
-        {loading ? (
-          <div className="flex justify-center items-center py-40">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+        <div className="flex-1 min-h-[600px]">
+          {loading ? (
+            <div className="flex justify-center items-center py-40">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
               {displayedPets.map((pet, index) => {
                 const popData = calculatePops(pet.init_stats_decimal);
                 return (
@@ -641,7 +642,7 @@ export default function PetExplorer() {
                   >
                     {/* ===== Popover Tooltip (아래로 매달림) ===== */}
                     {popData && (
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 pt-3 w-80 bg-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 pointer-events-none group-hover:pointer-events-auto transform translate-y-2 group-hover:translate-y-0">
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 pt-3 w-80 bg-transparent opacity-0 group-hover:opacity-100 transition-all duration-0 group-hover:duration-150 z-50 pointer-events-none group-hover:pointer-events-auto transform translate-y-2 group-hover:translate-y-0">
                         <div className="bg-[#12142d]/98 backdrop-blur-2xl p-5 flex flex-col items-stretch text-left space-y-3 rounded-2xl border border-indigo-500/40 shadow-[0_30px_60px_-10px_rgba(0,0,0,0.9)] relative">
                           {/* Arrow */}
                           <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#12142d] border-t border-l border-indigo-500/40 transform rotate-45 z-0" />
@@ -722,11 +723,11 @@ export default function PetExplorer() {
                       href={pet.detail_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex flex-col h-full flex-1 overflow-hidden rounded-[1rem] bg-[#161827] border border-white/10 group-hover:border-indigo-500/30 transition-all duration-300 group-hover:shadow-[0_4px_15px_-5px_rgba(99,102,241,0.2)] group-hover:-translate-y-0.5"
+                      className="flex flex-col h-full flex-1 overflow-hidden rounded-[1rem] bg-[#161827] border border-white/10 group-hover:border-indigo-500/30 transition-[transform,box-shadow,border-color] duration-150 group-hover:shadow-[0_4px_15px_-5px_rgba(99,102,241,0.2)] group-hover:-translate-y-1 transform-gpu"
                     >
                       {/* Mountable Icon */}
                       {pet.stats.탑승여부 === "가능" && (
-                        <div className="absolute top-2.5 right-2.5 z-20 flex items-center justify-center bg-black/40 backdrop-blur-md p-1.5 rounded-lg border border-amber-500/30 group-hover:border-amber-500/60 transition-colors shadow-sm">
+                        <div className="absolute top-2.5 right-2.5 z-20 flex items-center justify-center bg-black/40 backdrop-blur-md p-1.5 rounded-lg border border-amber-500/30 transition-colors shadow-sm transform-gpu">
                           <svg
                             className="w-3.5 h-3.5 text-amber-400"
                             fill="none"
@@ -745,14 +746,14 @@ export default function PetExplorer() {
                         </div>
                       )}
                       {/* Element Badge */}
-                      <div className="absolute top-2.5 left-2.5 z-20 flex items-center bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded border border-white/5">
+                      <div className="absolute top-2.5 left-2.5 z-20 flex items-center bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded border border-white/5 transform-gpu">
                         <span className="text-gray-200 font-bold text-base tracking-wide">
                           {pet.stats.속성}
                         </span>
                       </div>
                       {/* Has analysis badge */}
                       {pet.init_stats_decimal && (
-                        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 z-20 flex items-center bg-indigo-500/20 backdrop-blur-md px-1.5 py-0.5 rounded border border-indigo-500/20">
+                        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 z-20 flex items-center bg-indigo-500/20 backdrop-blur-md px-1.5 py-0.5 rounded border border-indigo-500/20 transform-gpu">
                           <span className="text-indigo-300 font-bold text-base tracking-wide">
                             분석
                           </span>
@@ -760,7 +761,7 @@ export default function PetExplorer() {
                       )}
 
                       <div className="p-3 pt-8 pb-2.5 flex flex-col items-center flex-1 relative z-10 w-full">
-                        <div className="relative w-16 h-16 min-h-[4rem] mb-3 transition-transform duration-300 group-hover:scale-[1.05] will-change-transform">
+                        <div className="relative w-16 h-16 min-h-[4rem] mb-3 transition-transform duration-75 will-change-transform">
                           <Image
                             src={`/images/${pet.local_image}`}
                             alt={pet.name}
@@ -855,5 +856,6 @@ export default function PetExplorer() {
         )}
       </div>
     </div>
-  );
+  </div>
+);
 }
