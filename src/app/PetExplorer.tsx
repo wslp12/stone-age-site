@@ -719,7 +719,7 @@ export default function PetExplorer() {
                       <div className="p-3 pt-8 pb-2.5 flex flex-col items-center flex-1 relative z-10 w-full">
                         <div className="relative w-16 h-16 min-h-[4rem] mb-3 transition-transform duration-300 group-hover:scale-[1.05] will-change-transform">
                           <Image
-                            src={pet.image_url}
+                            src={`/images/${pet.local_image}`}
                             alt={pet.name}
                             width={64}
                             height={64}
