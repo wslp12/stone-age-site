@@ -322,7 +322,7 @@ export default function PetExplorer() {
         {/* Header */}
         <header className="flex flex-col lg:flex-row items-center justify-between gap-4 pb-4 border-b border-indigo-500/10">
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400 text-transparent bg-clip-text drop-shadow-sm">
-            펫 검색기
+            LIFE AGE 펫 검색
           </h1>
           <div className="flex items-center gap-3 w-full lg:w-auto">
             <div className="relative flex-1 lg:w-80">
@@ -370,7 +370,7 @@ export default function PetExplorer() {
                 <div className="absolute top-0.5 left-0.5 w-3.5 h-3.5 bg-white/30 rounded-full peer-checked:translate-x-3.5 peer-checked:bg-indigo-400 transition-all duration-300 shadow-sm" />
               </div>
               <span
-                className={`text-[11px] font-bold transition-colors duration-200 ${includeCategory ? "text-indigo-300" : "text-white/25"}`}
+                className={`text-base font-bold transition-colors duration-200 ${includeCategory ? "text-indigo-300" : "text-white/25"}`}
               >
                 카테고리
               </span>
@@ -382,7 +382,7 @@ export default function PetExplorer() {
         <div className="flex flex-col xl:flex-row gap-6 p-5 rounded-2xl bg-[#161827] border border-white/10 backdrop-blur-xl shadow-lg">
           {/* Element Sliders */}
           <div className="flex-[1.2] flex flex-col space-y-3 min-w-[260px]">
-            <span className="text-[11px] font-bold text-indigo-300/60 uppercase tracking-widest px-1">
+            <span className="text-base font-bold text-indigo-300/60 uppercase tracking-widest px-1">
               최소 필수 속성치 (0~10)
             </span>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 bg-[#0d0f1a] border border-white/10 rounded-xl p-4 shadow-inner w-full h-full">
@@ -390,7 +390,7 @@ export default function PetExplorer() {
                 <div key={el} className="flex flex-col justify-center gap-2">
                   <label
                     htmlFor={`range-${el}`}
-                    className="flex justify-between items-center text-xs"
+                    className="flex justify-between items-center text-base"
                   >
                     <span
                       className={`font-bold ${el === "화" ? "text-red-400" : el === "수" ? "text-blue-400" : el === "지" ? "text-green-400" : "text-yellow-400"}`}
@@ -404,7 +404,7 @@ export default function PetExplorer() {
                             : "💨"}{" "}
                       {el}
                     </span>
-                    <span className="text-white/80 font-mono font-bold bg-white/5 px-2 py-0.5 rounded text-[10px]">
+                    <span className="text-white/80 font-mono font-bold bg-white/5 px-2 py-0.5 rounded text-base">
                       {minElements[el]}
                     </span>
                   </label>
@@ -442,7 +442,7 @@ export default function PetExplorer() {
           <div className="flex-1 flex flex-col justify-center space-y-2 min-w-[280px]">
             <label
               htmlFor="min-growth"
-              className="text-[11px] font-bold text-indigo-300/60 uppercase tracking-widest pl-1"
+              className="text-base font-bold text-indigo-300/60 uppercase tracking-widest pl-1"
             >
               성장률 하한 필터
             </label>
@@ -491,11 +491,11 @@ export default function PetExplorer() {
                 ].map((stat) => (
                   <div
                     key={stat.label}
-                    className="flex flex-col justify-center bg-[#0d0f1a] border border-white/10 rounded-lg shadow-inner overflow-hidden p-1"
+                    className="flex flex-col justify-center bg-[#0d0f1a] border border-white/10 rounded-lg shadow-inner overflow-hidden p-2"
                   >
                     <label
                       htmlFor={`growth-${stat.label}`}
-                      className={`text-center text-[9px] font-black ${stat.color} mb-0.5 opacity-80 cursor-pointer`}
+                      className={`text-center text-base font-black ${stat.color} mb-0.5 opacity-80 cursor-pointer`}
                     >
                       {stat.label}
                     </label>
@@ -505,7 +505,7 @@ export default function PetExplorer() {
                       value={stat.val}
                       onChange={(e) => stat.set(e.target.value)}
                       placeholder="0.00"
-                      className="w-full bg-transparent text-white/90 text-[11px] text-center font-bold focus:outline-none placeholder-white/20"
+                      className="w-full bg-transparent text-white/90 text-base text-center font-bold focus:outline-none placeholder-white/20"
                     />
                   </div>
                 ))}
@@ -518,16 +518,16 @@ export default function PetExplorer() {
           {/* Mount & Sort */}
           <div className="flex flex-col justify-center sm:flex-row gap-4 min-w-[200px]">
             <div className="space-y-3 flex-1">
-              <span className="text-[11px] font-bold text-indigo-300/60 uppercase tracking-widest pl-1">
+              <span className="text-base font-bold text-indigo-300/60 uppercase tracking-widest pl-1">
                 탑승
               </span>
-              <div className="flex bg-[#05050a] p-1.5 rounded-xl border border-white/5 shadow-inner">
+              <div className="flex bg-[#05050a] p-2 rounded-xl border border-white/5 shadow-inner">
                 {(["all", "가능", "불가"] as const).map((m) => (
                   <button
                     key={m}
                     type="button"
                     onClick={() => setMountable(m)}
-                    className={`flex-1 px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-300 ${mountable === m ? "bg-zinc-800 text-white shadow-md" : "text-indigo-200/40 hover:text-indigo-200"}`}
+                    className={`flex-1 px-4 py-2.5 rounded-lg text-base font-bold transition-all duration-300 ${mountable === m ? "bg-zinc-800 text-white shadow-md" : "text-indigo-200/40 hover:text-indigo-200"}`}
                   >
                     {m === "all" ? "전체" : m}
                   </button>
@@ -537,7 +537,7 @@ export default function PetExplorer() {
             <div className="space-y-3 flex-[1.2]">
               <label
                 htmlFor="sort-select"
-                className="text-[11px] font-bold text-indigo-300/60 uppercase tracking-widest pl-1"
+                className="text-base font-bold text-indigo-300/60 uppercase tracking-widest pl-1"
               >
                 정렬
               </label>
@@ -546,7 +546,7 @@ export default function PetExplorer() {
                   id="sort-select"
                   value={sort}
                   onChange={(e) => setSort(e.target.value as SortOption)}
-                  className="bg-[#0d0f1a] border border-white/10 text-white text-[11px] font-bold rounded-xl pl-3 pr-8 py-2 block w-full focus:ring-1 focus:ring-indigo-500/50 focus:outline-none appearance-none cursor-pointer shadow-inner"
+                  className="bg-[#0d0f1a] border border-white/10 text-white text-base font-bold rounded-xl pl-3 pr-10 py-3 block w-full focus:ring-1 focus:ring-indigo-500/50 focus:outline-none appearance-none cursor-pointer shadow-inner"
                 >
                   <option value="name">이름순</option>
                   <option value="id">번호순</option>
@@ -575,7 +575,7 @@ export default function PetExplorer() {
         </div>
 
         {/* Status */}
-        <p className="text-indigo-200/40 font-bold text-xs tracking-wide px-1">
+        <p className="text-indigo-200/40 font-bold text-base tracking-wide px-1">
           {loading
             ? "데이터 불러오는 중..."
             : `검색 결과: ${filteredPets.length} 마리`}
@@ -604,16 +604,16 @@ export default function PetExplorer() {
                           <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#12142d] border-t border-l border-indigo-500/40 transform rotate-45 z-0" />
 
                           {/* 안전도 판별 */}
-                          <div className="text-[10px] font-bold leading-relaxed space-y-1 relative z-10">
+                          <div className="text-base font-bold leading-relaxed space-y-2 relative z-10">
                             {popData.allSafe ? (
-                              <p className="text-emerald-400 text-center bg-emerald-900/20 py-1.5 rounded border border-emerald-500/10">
+                              <p className="text-emerald-400 text-center bg-emerald-900/20 py-2 rounded border border-emerald-500/10">
                                 ✅ 모든 초기능력치가 안정적입니다
                               </p>
                             ) : (
                               popData.dangerStats.map((s) => (
                                 <p
                                   key={s.name}
-                                  className="text-amber-400 text-center bg-amber-900/20 py-1.5 rounded border border-amber-500/10"
+                                  className="text-amber-400 text-center bg-amber-900/20 py-2 rounded border border-amber-500/10"
                                 >
                                   🎲 [{s.name}] 소수점 .
                                   {(s.decimal * 100).toFixed(0)} → 통수 주의
@@ -622,7 +622,7 @@ export default function PetExplorer() {
                               ))
                             )}
                             {popData.safeStats.length > 0 && (
-                              <p className="text-emerald-400/70 text-center text-[9px] py-1">
+                              <p className="text-emerald-400/70 text-center text-sm py-1">
                                 🛡️{" "}
                                 {popData.safeStats
                                   .map((s) => s.name)
@@ -633,8 +633,8 @@ export default function PetExplorer() {
                           </div>
 
                           {/* S급 초기능력치 가능한 모든 리스트 */}
-                          <div className="bg-black/60 border border-white/5 rounded-xl p-3 text-[10px] font-mono shadow-inner w-full relative z-10 flex flex-col h-40">
-                            <p className="text-white/40 text-[8px] mb-2 font-bold shrink-0">
+                          <div className="bg-black/60 border border-white/5 rounded-xl p-3 text-base font-mono shadow-inner w-full relative z-10 flex flex-col h-56">
+                            <p className="text-white/40 text-base mb-2 font-bold shrink-0">
                               S/S 가능 초기능력치 리스트 (체/공/방/순)
                             </p>
                             <div className="overflow-y-auto space-y-1 custom-scrollbar pr-1">
@@ -703,14 +703,14 @@ export default function PetExplorer() {
                       )}
                       {/* Element Badge */}
                       <div className="absolute top-2.5 left-2.5 z-20 flex items-center bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded border border-white/5">
-                        <span className="text-gray-200 font-bold text-[9px] tracking-wide">
+                        <span className="text-gray-200 font-bold text-base tracking-wide">
                           {pet.stats.속성}
                         </span>
                       </div>
                       {/* Has analysis badge */}
                       {pet.init_stats_decimal && (
                         <div className="absolute top-2.5 left-1/2 -translate-x-1/2 z-20 flex items-center bg-indigo-500/20 backdrop-blur-md px-1.5 py-0.5 rounded border border-indigo-500/20">
-                          <span className="text-indigo-300 font-bold text-[7px] tracking-wide">
+                          <span className="text-indigo-300 font-bold text-base tracking-wide">
                             분석
                           </span>
                         </div>
@@ -730,11 +730,11 @@ export default function PetExplorer() {
                             className="w-full h-full object-contain filter drop-shadow-[0_5px_8px_rgba(0,0,0,0.5)]"
                           />
                         </div>
-                        <h2 className="text-sm font-extrabold text-white/90 group-hover:text-white transition-colors tracking-tight mb-3 text-center">
+                        <h2 className="text-xl font-extrabold text-white/90 group-hover:text-white transition-colors tracking-tight mb-3 text-center">
                           {pet.name}
                         </h2>
                         {/* Stats Grid */}
-                        <div className="w-full grid grid-cols-5 gap-0.5 mt-auto bg-black/40 p-1 rounded-lg border border-white/5 overflow-hidden">
+                        <div className="w-full grid grid-cols-5 gap-0.5 mt-auto bg-black/40 p-2 rounded-lg border border-white/5 overflow-hidden">
                           {[
                             {
                               label: "공",
@@ -775,17 +775,17 @@ export default function PetExplorer() {
                             return (
                               <div
                                 key={stat.label}
-                                className="flex flex-col items-center justify-center py-1"
+                                className="flex flex-col items-center justify-center py-2"
                               >
-                                <span className="text-gray-500 text-[8px] font-black mb-0.5 uppercase tracking-wider">
+                                <span className="text-gray-500 text-[11px] font-black mb-0.5 uppercase tracking-wider">
                                   {stat.label}
                                 </span>
                                 <span
-                                  className={`${stat.color} font-bold text-[10px] leading-tight`}
+                                  className={`${stat.color} font-bold text-base leading-tight`}
                                 >
                                   {base}
                                 </span>
-                                <span className="text-white/50 font-semibold text-[8px] leading-none mt-0.5">
+                                <span className="text-white/50 font-semibold text-[11px] leading-none mt-1">
                                   +{grw}
                                 </span>
                               </div>
